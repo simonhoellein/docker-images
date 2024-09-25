@@ -12,6 +12,10 @@ changelog:
       labels:
         - changelog:enhancement
 
+    - title: 🐛 Bugs
+      labels:
+        - changelog:bug
+
     - title: 📚 Documentation
       labels:
         - changelog:documentation
