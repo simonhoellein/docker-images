@@ -36,15 +36,12 @@ jobs:
           dockerfile: ./Dockerfile
 
   build:
-    needs: [check-changes]
+    needs: [lint]
     name: Build
     runs-on: ubuntu-latest
     permissions:
       packages: write
       contents: read
-    strategy:
-      matrix:
-        container: ${{fromJSON(needs.check-changes.outputs.container)}}
 
     steps:
       - name: Checkout code

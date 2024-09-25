@@ -99,11 +99,6 @@ jobs:
     name: Merge
     needs:
       - build
-      - check-changes
-    strategy:
-      fail-fast: false
-      matrix:
-        container: ${{fromJSON(needs.check-changes.outputs.container)}}
 
     steps:
       - name: Download digests
