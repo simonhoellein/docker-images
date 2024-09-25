@@ -10,12 +10,12 @@ changelog:
 
     - title: 🌟 Enhancements
       labels:
-        - changelog:enhancement
+        - enhancement
 
     - title: 🐛 Bugs
       labels:
-        - changelog:bug
+        - bug
 
     - title: 📚 Documentation
       labels:
-        - changelog:documentation
+        - documentation
