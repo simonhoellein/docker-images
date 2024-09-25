@@ -3,6 +3,8 @@ name: Test
 on:
   push:
     branches:
+      - 'dev/**'
+      - 'test/**'
       - '!main'
   pull_request:
   workflow_dispatch:
@@ -45,7 +47,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USER }}
+          username: ${{ vars.DOCKER_USER }}
           password: ${{ secrets.DOCKER_KEY }}
 
       - name: Build ${{ vars.GITHUB_REPOSITORY }}
