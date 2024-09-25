@@ -1,0 +1,80 @@
+---
+name: Test
+on:
+  push:
+    branches:
+      - '!main'
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: checkout-code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+        
+      - name: Prepare
+        run: pip install yamllint
+
+      - name: yamllint
+        run: yamllint .
+
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          failure-threshold: warning
+          dockerfile: ./Dockerfile
+
+  build:
+    needs: [check-changes]
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        container: ${{fromJSON(needs.check-changes.outputs.container)}}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USER }}
+          password: ${{ secrets.DOCKER_KEY }}
+
+      - name: Build ${{ vars.GITHUB_REPOSITORY }}
+        uses: docker/build-push-action@v6
+        with:
+          load: true
+          context: .
+          tags: |
+            ${{ vars.GITHUB_REPOSITORY }}:test
+          push: false
+
+      - name: Test container
+        run: |
+          docker run --rm ${{ vars.GITHUB_REPOSITORY }}:test
+
+      - name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
