@@ -7,7 +7,6 @@ on:
 
 jobs:
   build:
-    needs: [gitleaks]
     name: Build
     runs-on: ubuntu-latest
     permissions:
@@ -37,11 +36,11 @@ jobs:
           flavor: |
             latest=true
           images: |
-            name=${{ vars.GITHUB_REPOSITORY }}
+            name=${{ github.repository }}
           tags: |
             type=ref,event=tag
             type=ref,event=branch
-            type=semver,pattern={{raw}}
+            type=semver,pattern={{version}}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -63,7 +62,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ vars.GITHUB_REPOSITORY }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,name=${{ github.repository }},push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -100,7 +99,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.GITHUB_REPOSITORY }}
+          images: ${{ github.repository }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -112,8 +111,8 @@ jobs:
         working-directory: /tmp/digests
         run: |
           docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ vars.GITHUB_REPOSITORY }}@sha256:%s ' *)
+            $(printf '${{ github.repository }}@sha256:%s ' *)
 
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ vars.GITHUB_REPOSITORY }}:${{ steps.meta.outputs.version }}
+          docker buildx imagetools inspect ${{ github.repository }}:${{ steps.meta.outputs.version }}
