@@ -37,6 +37,7 @@ jobs:
             latest=true
           images: |
             name=${{ github.repository }}
+            name=ghcr.io/${{ github.repository }}
           tags: |
             type=ref,event=tag
             type=ref,event=branch
@@ -48,6 +49,13 @@ jobs:
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Login to Github
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -62,7 +70,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           labels: ${{ steps.meta.outputs.labels }}
-          outputs: type=image,name=${{ github.repository }},push-by-digest=true,name-canonical=true,push=true
+          outputs: type=image,push-by-digest=true,name-canonical=true,push=true
 
       - name: Export digest
         run: |
@@ -100,6 +108,13 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ${{ github.repository }}
+
+      - name: Login to Github
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
